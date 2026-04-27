@@ -92,9 +92,9 @@ def _materialise_split(ds, indices, split_name: str, out_root: str) -> List[dict
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out_root", type=str, default="data/iam_tiny")
-    parser.add_argument("--n_train", type=int, default=200)
-    parser.add_argument("--n_val", type=int, default=50)
-    parser.add_argument("--n_test", type=int, default=50)
+    parser.add_argument("--n_train", type=int, default=2000)
+    parser.add_argument("--n_val", type=int, default=200)
+    parser.add_argument("--n_test", type=int, default=200)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 

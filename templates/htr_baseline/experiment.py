@@ -109,29 +109,40 @@ def collate(batch):
 
 
 class TinyCRNN(nn.Module):
-    """Small CNN -> BiLSTM -> Linear. ~0.5M parameters, CPU-friendly."""
+    """Small CNN -> BiLSTM -> Linear. ~0.5M parameters, CPU-friendly.
 
-    def __init__(self, num_classes: int, lstm_hidden: int = 128):
+    Pooling is height-only after the first block so the encoder emits a
+    long enough sequence for CTC to align with line transcripts. The
+    blank-class bias is initialised to a negative value to discourage the
+    classic all-blank local minimum that small CTC models fall into when
+    trained on tiny datasets.
+    """
+
+    def __init__(self, num_classes: int, lstm_hidden: int = 128, blank_idx: int = 0):
         super().__init__()
-        # Stride-2 in H to bring (H=32) -> (H=4) before AdaptiveAvgPool(1).
         self.cnn = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d((2, 2)),  # 32 -> 16
+            nn.MaxPool2d((2, 2)),       # H 32 -> 16, W /2
             nn.Conv2d(32, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d((2, 2)),  # 16 -> 8
+            nn.MaxPool2d((2, 1)),       # H 16 -> 8 (width preserved)
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d((2, 1)),  # 8 -> 4 (height only)
+            nn.MaxPool2d((2, 1)),       # H 8 -> 4
             nn.AdaptiveAvgPool2d((1, None)),  # H -> 1
         )
         self.lstm = nn.LSTM(
             input_size=128, hidden_size=lstm_hidden, num_layers=1, bidirectional=True
         )
         self.classifier = nn.Linear(2 * lstm_hidden, num_classes)
-        # Down-sampling factor in width for CTC length computation.
-        self.width_downsample = 4  # two MaxPool((_,2)) -> 4x
+        # Bias the blank class negative so the network prefers emitting
+        # real characters early in training (escapes the all-blank minimum).
+        with torch.no_grad():
+            self.classifier.bias.zero_()
+            self.classifier.bias[blank_idx] = -2.0
+        # Width downsample factor (only the first MaxPool halves W).
+        self.width_downsample = 2
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: (B, 1, H, W)
@@ -250,9 +261,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out_dir", type=str, required=True)
     parser.add_argument("--data_root", type=str, default=DATA_ROOT)
-    parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--epochs", type=int, default=8)
     parser.add_argument("--batch_size", type=int, default=16)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=5e-4)
+    parser.add_argument("--weight_decay", type=float, default=1e-4)
     parser.add_argument("--lstm_hidden", type=int, default=128)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
@@ -296,8 +308,17 @@ def main():
         test_ds, batch_size=args.batch_size, shuffle=False, num_workers=0, collate_fn=collate
     )
 
-    model = TinyCRNN(num_classes=num_classes, lstm_hidden=args.lstm_hidden).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
+    model = TinyCRNN(
+        num_classes=num_classes,
+        lstm_hidden=args.lstm_hidden,
+        blank_idx=blank_idx,
+    ).to(device)
+    optimizer = torch.optim.AdamW(
+        model.parameters(), lr=args.lr, weight_decay=args.weight_decay
+    )
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=args.epochs, eta_min=args.lr * 0.05
+    )
     ctc_loss = nn.CTCLoss(blank=blank_idx, zero_infinity=True)
 
     history = {
@@ -314,12 +335,14 @@ def main():
     early_stopped = False
     for epoch in range(1, args.epochs + 1):
         train_loss = train_one_epoch(model, train_loader, optimizer, ctc_loss, device)
+        scheduler.step()
         val_metrics = evaluate(model, val_loader, idx_to_char, blank_idx, device)
         elapsed = (time.time() - t_start) / 60.0
         print(
             f"[epoch {epoch}/{args.epochs}] train_loss={train_loss:.4f} "
             f"val_loss={val_metrics['loss']:.4f} val_CER={val_metrics['CER']:.4f} "
-            f"val_WER={val_metrics['WER']:.4f} elapsed_min={elapsed:.2f}"
+            f"val_WER={val_metrics['WER']:.4f} "
+            f"lr={optimizer.param_groups[0]['lr']:.5f} elapsed_min={elapsed:.2f}"
         )
         history["iam_tiny"]["epochs"].append(epoch)
         history["iam_tiny"]["train_loss"].append(train_loss)
