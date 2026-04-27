@@ -217,11 +217,14 @@ def do_idea(
             main_model = Model(f"openai/{model}")
         else:
             main_model = Model(model)
+        # NOTE: stream=True is required for OpenAI-compatible proxies (e.g.
+        # shareapi.cloud) that only deliver content via Server-Sent Events
+        # for newer reasoning models. It is a safe default on real OpenAI.
         coder = Coder.create(
             main_model=main_model,
             fnames=fnames,
             io=io,
-            stream=False,
+            stream=True,
             use_git=False,
             edit_format="diff",
         )
@@ -259,7 +262,7 @@ def do_idea(
                 main_model=main_model,
                 fnames=fnames,
                 io=io,
-                stream=False,
+                stream=True,
                 use_git=False,
                 edit_format="diff",
             )
