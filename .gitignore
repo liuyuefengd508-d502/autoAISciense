@@ -178,3 +178,6 @@ run_0.log
 data/
 templates/htr_baseline/run_0/
 templates/htr_baseline/*.png
+launch.log
+results/
+templates/htr_baseline/ideas.json.bootstrap

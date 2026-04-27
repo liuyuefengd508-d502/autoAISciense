@@ -147,7 +147,16 @@ AVAILABLE_LLMS = [
 
 
 # Get N responses from a single message, used for ensembling.
-@backoff.on_exception(backoff.expo, (openai.RateLimitError, openai.APITimeoutError))
+@backoff.on_exception(
+    backoff.expo,
+    (
+        openai.RateLimitError,
+        openai.APITimeoutError,
+        openai.APIConnectionError,
+        openai.InternalServerError,
+    ),
+    max_tries=6,
+)
 def get_batch_responses_from_llm(
         msg,
         client,
@@ -238,7 +247,16 @@ def get_batch_responses_from_llm(
     return content, new_msg_history
 
 
-@backoff.on_exception(backoff.expo, (openai.RateLimitError, openai.APITimeoutError))
+@backoff.on_exception(
+    backoff.expo,
+    (
+        openai.RateLimitError,
+        openai.APITimeoutError,
+        openai.APIConnectionError,
+        openai.InternalServerError,
+    ),
+    max_tries=6,
+)
 def get_response_from_llm(
         msg,
         client,
