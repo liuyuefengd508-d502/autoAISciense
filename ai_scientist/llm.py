@@ -10,6 +10,88 @@ from google.generativeai.types import GenerationConfig
 
 MAX_NUM_TOKENS = 4096
 
+# Models that must be routed through the OpenAI Responses API instead of
+# the legacy chat.completions endpoint. Some OpenAI-compatible proxies
+# (e.g. shareapi.cloud) only expose newer reasoning models such as
+# `gpt-5.4` via the Responses wire format and return empty `content`
+# fields when called via chat.completions.
+RESPONSES_API_MODEL_PREFIXES = ("gpt-5",)
+
+
+def _use_responses_api(model: str) -> bool:
+    return any(model.startswith(p) for p in RESPONSES_API_MODEL_PREFIXES)
+
+
+def _extract_responses_text(response) -> str:
+    """Pull the assistant text out of an OpenAI Responses API result.
+
+    Prefers the SDK convenience property ``output_text`` and falls back to
+    walking ``response.output`` for any text content blocks. Reasoning
+    blocks are intentionally ignored.
+    """
+    text = getattr(response, "output_text", None)
+    if text:
+        return text
+    parts = []
+    for item in getattr(response, "output", []) or []:
+        if getattr(item, "type", None) == "reasoning":
+            continue
+        for block in getattr(item, "content", []) or []:
+            block_text = getattr(block, "text", None)
+            if block_text:
+                parts.append(block_text)
+    return "".join(parts)
+
+
+def _responses_create_text(
+        client, model: str, system_message: str, msg_history, msg: str
+) -> str:
+    """Single-completion call against the Responses API.
+
+    `msg_history` is a list of {role, content} dicts in chat.completions
+    format; we stitch the system message in front and the new user msg
+    on the back. We default to a low reasoning effort so token usage stays
+    bounded; callers that want more reasoning can override via the
+    ``OPENAI_RESPONSES_REASONING_EFFORT`` env var.
+
+    NOTE: Some OpenAI-compatible proxies (e.g. shareapi.cloud) only stream
+    text deltas and return an empty ``output`` array on the non-streaming
+    endpoint. We therefore use ``responses.stream`` and accumulate the
+    text deltas, which works for both real OpenAI and such proxies.
+    """
+    effort = os.environ.get("OPENAI_RESPONSES_REASONING_EFFORT", "low").lower()
+    if effort not in {"low", "medium", "high", "minimal"}:
+        effort = "low"
+    inputs = [{"role": "system", "content": system_message}]
+    inputs.extend(msg_history)
+    inputs.append({"role": "user", "content": msg})
+
+    chunks = []
+    with client.responses.stream(
+        model=model,
+        input=inputs,
+        reasoning={"effort": effort},
+        max_output_tokens=MAX_NUM_TOKENS,
+    ) as stream:
+        for event in stream:
+            etype = getattr(event, "type", "") or ""
+            # We want output text deltas, not reasoning deltas.
+            if etype == "response.output_text.delta":
+                delta = getattr(event, "delta", None)
+                if delta:
+                    chunks.append(str(delta))
+        # If the stream did not emit any text deltas, fall back to the
+        # final response object (works on real OpenAI).
+        if not chunks:
+            try:
+                final = stream.get_final_response()
+                final_text = _extract_responses_text(final)
+                if final_text:
+                    return final_text
+            except Exception:
+                pass
+    return "".join(chunks)
+
 AVAILABLE_LLMS = [
     # Anthropic models
     "claude-3-5-sonnet-20240620",
@@ -79,7 +161,22 @@ def get_batch_responses_from_llm(
     if msg_history is None:
         msg_history = []
 
-    if 'gpt' in model:
+    if _use_responses_api(model):
+        # Responses API has no `n` param; loop and collect.
+        content = []
+        new_msg_history_list = []
+        for _ in range(n_responses):
+            text = _responses_create_text(
+                client, model, system_message, msg_history, msg
+            )
+            content.append(text)
+            new_msg_history_list.append(
+                msg_history
+                + [{"role": "user", "content": msg}]
+                + [{"role": "assistant", "content": text}]
+            )
+        new_msg_history = new_msg_history_list
+    elif 'gpt' in model:
         new_msg_history = msg_history + [{"role": "user", "content": msg}]
         response = client.chat.completions.create(
             model=model,
@@ -154,7 +251,17 @@ def get_response_from_llm(
     if msg_history is None:
         msg_history = []
 
-    if "claude" in model:
+    if _use_responses_api(model):
+        text = _responses_create_text(
+            client, model, system_message, msg_history, msg
+        )
+        new_msg_history = (
+            msg_history
+            + [{"role": "user", "content": msg}]
+            + [{"role": "assistant", "content": text}]
+        )
+        content = text
+    elif "claude" in model:
         new_msg_history = msg_history + [
             {
                 "role": "user",

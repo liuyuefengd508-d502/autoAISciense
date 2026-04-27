@@ -40,22 +40,25 @@ RUN pip install --upgrade pip \
     && pip install --index-url https://download.pytorch.org/whl/cpu \
         torch==2.4.0 torchvision==0.19.0
 
-# AI-Scientist requirements (mirrors requirements.txt, pinned for reproducibility)
+# AI-Scientist requirements. We bump `openai` and `aider-chat` above the
+# pinned versions in requirements.txt so the new OpenAI **Responses API**
+# (used by reasoning-style models such as `gpt-5.4` exposed via the
+# shareapi.cloud proxy) is supported.
+# aider-chat pins lots of transitive deps. Install it first in isolation so
+# the resolver picks aider's preferred versions, then layer the
+# AI-Scientist extras on top.
+RUN pip install aider-chat==0.85.1
 RUN pip install \
-        anthropic==0.34.0 \
-        aider-chat==0.50.1 \
+        anthropic==0.42.0 \
         backoff==2.2.1 \
-        openai==1.40.6 \
-        google-generativeai==0.7.2 \
+        google-generativeai==0.8.5 \
         matplotlib==3.9.2 \
         pypdf==4.3.1 \
         pymupdf4llm==0.0.10 \
-        numpy==1.26.4 \
-        transformers==4.44.0 \
-        datasets==2.21.0 \
-        tiktoken==0.7.0 \
-        wandb==0.17.7 \
-        tqdm==4.66.5
+        "numpy<2.0" \
+        transformers \
+        datasets \
+        wandb
 
 # HTR-specific extras
 RUN pip install \
