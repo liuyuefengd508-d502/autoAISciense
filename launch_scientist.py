@@ -19,7 +19,9 @@ from ai_scientist.perform_experiments import perform_experiments
 from ai_scientist.perform_review import perform_review, load_paper, perform_improvement
 from ai_scientist.perform_writeup import perform_writeup, generate_latex
 
-NUM_REFLECTIONS = 3
+# Number of self-reflection turns during idea generation. Kept low to
+# reduce request volume against rate-limited OpenAI-compatible proxies.
+NUM_REFLECTIONS = 1
 
 
 def print_time():
@@ -287,9 +289,9 @@ def do_idea(
                     paper_text,
                     model=review_model_id,
                     client=review_client,
-                    num_reflections=5,
+                    num_reflections=2,
                     num_fs_examples=1,
-                    num_reviews_ensemble=5,
+                    num_reviews_ensemble=1,
                     temperature=0.1,
                 )
                 # Store the review in separate review.txt file
@@ -313,9 +315,9 @@ def do_idea(
                     paper_text,
                     model=review_model_id,
                     client=review_client,
-                    num_reflections=5,
+                    num_reflections=2,
                     num_fs_examples=1,
-                    num_reviews_ensemble=5,
+                    num_reviews_ensemble=1,
                     temperature=0.1,
                 )
                 # Store the review in separate review.txt file
