@@ -89,6 +89,13 @@ def parse_arguments():
         choices=["semanticscholar", "openalex"],
         help="Scholar engine to use.",
     )
+    parser.add_argument(
+        "--review-model",
+        type=str,
+        default=None,
+        choices=AVAILABLE_LLMS,
+        help="Model to use for paper review. Defaults to --model.",
+    )
     return parser.parse_args()
 
 
@@ -204,6 +211,10 @@ def do_idea(
             main_model = Model("deepseek/deepseek-reasoner")
         elif model == "llama3.1-405b":
             main_model = Model("openrouter/meta-llama/llama-3.1-405b-instruct")
+        elif "gpt" in model or "o1" in model or "o3" in model:
+            # Use openai/ prefix so aider routes through OpenAI provider, which
+            # honors OPENAI_API_BASE (custom OpenAI-compatible proxies).
+            main_model = Model(f"openai/{model}")
         else:
             main_model = Model(model)
         coder = Coder.create(
@@ -240,6 +251,8 @@ def do_idea(
                 main_model = Model("deepseek/deepseek-reasoner")
             elif model == "llama3.1-405b":
                 main_model = Model("openrouter/meta-llama/llama-3.1-405b-instruct")
+            elif "gpt" in model or "o1" in model or "o3" in model:
+                main_model = Model(f"openai/{model}")
             else:
                 main_model = Model(model)
             coder = Coder.create(
@@ -265,10 +278,12 @@ def do_idea(
         if writeup == "latex":
             try:
                 paper_text = load_paper(f"{folder_name}/{idea['Name']}.pdf")
+                review_model_name = args.review_model or model
+                review_client, review_model_id = create_client(review_model_name)
                 review = perform_review(
                     paper_text,
-                    model="gpt-4o-2024-05-13",
-                    client=openai.OpenAI(),
+                    model=review_model_id,
+                    client=review_client,
                     num_reflections=5,
                     num_fs_examples=1,
                     num_reviews_ensemble=5,
@@ -293,8 +308,8 @@ def do_idea(
                 paper_text = load_paper(f"{folder_name}/{idea['Name']}_improved.pdf")
                 review = perform_review(
                     paper_text,
-                    model="gpt-4o-2024-05-13",
-                    client=openai.OpenAI(),
+                    model=review_model_id,
+                    client=review_client,
                     num_reflections=5,
                     num_fs_examples=1,
                     num_reviews_ensemble=5,

@@ -1,0 +1,53 @@
+AI-Scientist HTR Research Progress Log
+======================================
+
+Branch: htr-research
+
+[done] Patches to AI-Scientist core
+  - ai_scientist/llm.py: added "gpt-5.4" to AVAILABLE_LLMS;
+    create_client() now honors OPENAI_BASE_URL for any gpt/o1/o3 model.
+  - launch_scientist.py: added --review-model CLI flag; review section
+    no longer hardcodes "gpt-4o-2024-05-13" or naked openai.OpenAI();
+    aider main_model uses the "openai/<model>" prefix for gpt/o1/o3
+    so it routes through OPENAI_API_BASE.
+
+[done] Containerization
+  - Dockerfile.htr-cpu (CPU-only python:3.11-slim, no texlive-full;
+    uses texlive-latex-* + chktex + biber + latexmk).
+  - docker-build.ps1 builds image ai-scientist-htr-cpu:latest.
+  - docker-run.ps1 starts an interactive container with
+    OPENAI_API_KEY / OPENAI_BASE_URL / OPENAI_API_BASE /
+    OPENALEX_MAIL_ADDRESS forwarded.
+
+[done] templates/htr_baseline/
+  - prepare_iam_tiny.py: downloads Teklia/IAM-line, filters by ASCII
+    charset, samples 200/50/50 train/val/test at H=32, caches to
+    data/iam_tiny/ with a manifest.json.
+  - experiment.py: TinyCRNN (Conv -> AdaptiveAvgPool -> 1-layer BiLSTM
+    -> Linear) trained with CTC. Greedy decode + jiwer CER/WER. Writes
+    final_info.json with iam_tiny_test.means.{CER,WER,test_loss,
+    train_time_sec,epochs_completed,early_stopped}. Walks up the dir
+    tree to locate data/iam_tiny so the script works after AI-Scientist
+    copies the template into results/htr_baseline/<idea>/.
+  - plot.py: renders train/val loss + val CER curves and a final
+    test-metric bar chart across all run_* folders.
+  - prompt.json, seed_ideas.json (7 ideas across architecture, decoding,
+    augmentation, distillation, curriculum, LM rescoring axes).
+  - latex/ (template.tex with HTR-flavored related work + figure refs;
+    iclr2024_conference.{sty,bst}, fancyhdr.sty, natbib.sty copied from
+    nanoGPT_lite).
+
+[next] Build the image and run smoke tests
+  1. .\docker-build.ps1
+  2. $Env:OPENAI_API_KEY = "<rotated key>"
+     .\docker-run.ps1
+  3. Inside container:
+       python templates/htr_baseline/prepare_iam_tiny.py
+       cd templates/htr_baseline
+       python experiment.py --out_dir run_0
+       python plot.py
+  4. Verify run_0/final_info.json exists, *.png files exist.
+  5. cd /workspace
+     python launch_scientist.py --model gpt-5.4 \
+            --experiment htr_baseline --num-ideas 1 --engine openalex
+  6. Inspect results/htr_baseline/<timestamp>_<idea>/.

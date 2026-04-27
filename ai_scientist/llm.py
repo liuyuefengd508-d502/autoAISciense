@@ -33,6 +33,8 @@ AVAILABLE_LLMS = [
     "o1-mini-2024-09-12",
     "o3-mini",
     "o3-mini-2025-01-31",
+    # Custom proxy / future OpenAI models
+    "gpt-5.4",
     # OpenRouter models
     "llama3.1-405b",
     # Anthropic Claude models via Amazon Bedrock
@@ -327,6 +329,10 @@ def create_client(model):
         print(f"Using Vertex AI with model {client_model}.")
         return anthropic.AnthropicVertex(), client_model
     elif 'gpt' in model or "o1" in model or "o3" in model:
+        base_url = os.environ.get("OPENAI_BASE_URL")
+        if base_url:
+            print(f"Using OpenAI-compatible API at {base_url} with model {model}.")
+            return openai.OpenAI(base_url=base_url), model
         print(f"Using OpenAI API with model {model}.")
         return openai.OpenAI(), model
     elif model in ["deepseek-chat", "deepseek-reasoner", "deepseek-coder"]:
