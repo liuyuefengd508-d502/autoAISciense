@@ -33,7 +33,12 @@ for folder in folders:
             finals[folder] = json.load(f)
 
 # Add new entries here when AI-Scientist creates additional runs (run_1, run_2, ...).
-labels = {folder: ("Baseline" if folder == "run_0" else folder) for folder in folders}
+_PRETTY = {
+    "run_0": "Baseline (8 ep, no aug)",
+    "run_1": "Elastic + Affine (16 ep)",
+    "run_2": "No aug, 16 ep (control)",
+}
+labels = {f: _PRETTY.get(f, f) for f in folders}
 
 
 def palette(n):

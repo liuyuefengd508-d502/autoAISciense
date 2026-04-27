@@ -34,6 +34,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms as T
 
 # --------------------------- data ---------------------------
 
@@ -61,8 +62,47 @@ def _find_data_root() -> str:
 DATA_ROOT = _find_data_root()
 
 
+def _build_train_augmenter(kind: str):
+    """Return a torchvision transform applied to a (1, H, W) tensor in [-1, 1].
+
+    `kind` is one of:
+      - "none":    identity (used for val/test and baseline runs)
+      - "elastic": elastic distortion + small random affine, simulating natural
+                   handwriting jitter. Implementation follows Simard et al.
+                   ("Best practices for convolutional neural networks applied
+                   to visual document analysis", ICDAR 2003), with parameters
+                   tuned for 32-px high handwriting line images.
+    """
+    kind = (kind or "none").lower()
+    if kind == "none":
+        return None
+    if kind == "elastic":
+        # Mild parameters: stronger displacements collapse the tiny CTC model
+        # back into the all-blank attractor, so we keep alpha/sigma low and
+        # only nudge affine.
+        return T.Compose(
+            [
+                T.RandomAffine(
+                    degrees=1,
+                    translate=(0.01, 0.01),
+                    scale=(0.97, 1.03),
+                    shear=(-1.0, 1.0),
+                    fill=-1.0,
+                ),
+                T.ElasticTransform(alpha=8.0, sigma=6.0, fill=-1.0),
+            ]
+        )
+    raise ValueError(f"Unknown augment kind: {kind}")
+
+
 class IAMTinyDataset(Dataset):
-    def __init__(self, manifest_path: str, split: str, char_to_idx: Dict[str, int]):
+    def __init__(
+        self,
+        manifest_path: str,
+        split: str,
+        char_to_idx: Dict[str, int],
+        augment: str = "none",
+    ):
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
         self.records = manifest["splits"][split]
@@ -70,6 +110,10 @@ class IAMTinyDataset(Dataset):
         self.char_to_idx = char_to_idx
         self.image_height = manifest["image_height"]
         self.max_image_width = manifest["max_image_width"]
+        # Augmentation is only meaningful on the training split.
+        self.augmenter = (
+            _build_train_augmenter(augment) if split == "train" else None
+        )
 
     def __len__(self) -> int:
         return len(self.records)
@@ -87,6 +131,9 @@ class IAMTinyDataset(Dataset):
         arr = np.array(canvas, dtype=np.float32) / 255.0
         arr = (arr - 0.5) / 0.5  # normalise to [-1, 1]
         tensor = torch.from_numpy(arr).unsqueeze(0)  # (1, H, W)
+
+        if self.augmenter is not None:
+            tensor = self.augmenter(tensor)
 
         target = torch.tensor(
             [self.char_to_idx[c] for c in rec["text"] if c in self.char_to_idx],
@@ -266,6 +313,13 @@ def main():
     parser.add_argument("--lr", type=float, default=5e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
     parser.add_argument("--lstm_hidden", type=int, default=128)
+    parser.add_argument(
+        "--augment",
+        type=str,
+        default="none",
+        choices=["none", "elastic"],
+        help="Training-time data augmentation. 'elastic' adds random affine + elastic distortion.",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--max_train_minutes",
@@ -291,7 +345,9 @@ def main():
     blank_idx = 0
     num_classes = len(idx_to_char)
 
-    train_ds = IAMTinyDataset(manifest_path, "train", char_to_idx)
+    train_ds = IAMTinyDataset(
+        manifest_path, "train", char_to_idx, augment=args.augment
+    )
     val_ds = IAMTinyDataset(manifest_path, "val", char_to_idx)
     test_ds = IAMTinyDataset(manifest_path, "test", char_to_idx)
     train_loader = DataLoader(
@@ -377,6 +433,7 @@ def main():
                 if history["iam_tiny"]["epochs"]
                 else 0.0,
                 "early_stopped": float(1.0 if early_stopped else 0.0),
+                "augment": args.augment,
             }
         }
     }

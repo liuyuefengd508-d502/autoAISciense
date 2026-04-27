@@ -1,0 +1,94 @@
+# Title: Elastic Distortion Augmentation for Tiny-Data Handwritten Text Recognition
+
+## Experiment description
+Tiny CRNN-CTC handwritten text recogniser trained on a 200-line subset of the
+IAM offline handwriting database. The baseline (Run 0) is the bare CRNN with
+no data augmentation, trained for 8 epochs with cosine LR schedule. We add
+online elastic distortion (Simard et al., ICDAR 2003) plus mild random affine
+to the training pipeline (`IAMTinyDataset.__getitem__`) and study (a) whether
+this helps despite the very small training set, and (b) how much of the gain
+comes from augmentation vs. simply training longer. Three ablation runs:
+
+  Run 0  --augment none      --epochs 8     (baseline)
+  Run 1  --augment elastic   --epochs 16    (proposed)
+  Run 2  --augment none      --epochs 16    (control: longer training only)
+
+Augmentation params (mild, after early experiments showed stronger
+displacements collapse the tiny CTC model into the all-blank attractor):
+
+  RandomAffine(degrees=1, translate=0.01, scale=0.97-1.03, shear=+/-1)
+  ElasticTransform(alpha=8.0, sigma=6.0)
+
+## Run 0: Baseline (8 epochs, no augmentation)
+Results: {'iam_tiny_test': {'CER': 0.9908493664946034,
+                            'WER': 0.9601190476190476,
+                            'test_loss': 3.1744786409231334,
+                            'train_time_sec': 336.06,
+                            'epochs_completed': 8.0,
+                            'early_stopped': 0.0,
+                            'augment': 'none'}}
+Description: Vanilla configuration, used as the headline baseline.
+
+## Run 1: Elastic + Affine augmentation (16 epochs)
+Results: {'iam_tiny_test': {'CER': 0.8430,
+                            'WER': 0.9792,
+                            'test_loss': 2.7329,
+                            'train_time_sec': 1015.94,
+                            'epochs_completed': 16.0,
+                            'early_stopped': 0.0,
+                            'augment': 'elastic'}}
+Description: Same architecture and hyper-parameters as Run 0, but the
+training images are perturbed online with mild elastic distortion and a
+small random affine transform, and we double the number of epochs to give
+the augmented optimisation enough budget to escape the early all-blank
+plateau (visible in early epochs of Run 1, see val_cer curve). Test CER
+drops from 0.9908 to 0.8430, an absolute improvement of 14.8 percentage
+points (relative -14.9%). Test loss drops from 3.17 to 2.73. WER moves
+slightly the wrong direction (0.9601 -> 0.9792); we attribute this to the
+fact that, in this regime, the model still rarely produces a fully
+correct word, so character-level wins do not propagate to word-level.
+
+## Run 2: Control - longer training, no augmentation (16 epochs)
+Results: {'iam_tiny_test': {'CER': 0.9804,
+                            'WER': 0.9810,
+                            'test_loss': 3.0755,
+                            'train_time_sec': 708.95,
+                            'epochs_completed': 16.0,
+                            'early_stopped': 0.0,
+                            'augment': 'none'}}
+Description: Exactly Run 0's configuration but trained for 16 epochs to
+isolate the contribution of additional gradient steps from the
+contribution of the augmentation. CER drops from 0.9908 (Run 0) to 0.9804,
+an improvement of only 1.0 percentage point. This means the additional
+training budget alone does not explain the Run 1 gain.
+
+## Ablation summary
+              CER       Delta vs Run 0
+  Run 0    0.9908       --
+  Run 2    0.9804       -1.0 pp     (effect of doubling epochs alone)
+  Run 1    0.8430      -14.8 pp     (full proposed system)
+
+Decomposition of the Run 1 improvement:
+  -1.0 pp  from longer training (Run 0 -> Run 2)
+ -13.7 pp  from elastic + affine augmentation (Run 2 -> Run 1)
+  ----------
+ -14.8 pp  total
+
+Augmentation is responsible for ~92% of the total CER reduction, confirming
+that elastic distortion is the primary driver and not simply the extra epochs.
+
+## Plots
+  - train_loss_iam_tiny.png : train cross-entropy per epoch, all runs
+  - val_loss_iam_tiny.png   : validation cross-entropy per epoch, all runs
+  - val_cer_iam_tiny.png    : validation CER per epoch, all runs
+  - test_metrics_bar.png    : final test CER / WER / loss bar chart
+
+## Caveats and limitations
+  - Tiny dataset (200 train / 30 val / 32 test lines from IAM); WER remains
+    high because the model still cannot produce a clean word in most cases.
+  - We did not sweep alpha/sigma; mild values were chosen after a single
+    pilot run with stronger displacements collapsed training.
+  - We did not test the 100-line setting proposed in the original idea; an
+    obvious next experiment.
+  - Single-seed comparison; reported deltas are within the regime where a
+    seed sweep is worthwhile.

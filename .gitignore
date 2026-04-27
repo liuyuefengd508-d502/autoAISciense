@@ -181,3 +181,4 @@ templates/htr_baseline/*.png
 launch.log
 results/
 templates/htr_baseline/ideas.json.bootstrap
+run_*.log
