@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "elastic_aug",
+    "Title": "Elastic Distortion Augmentation for Tiny-Data Handwritten Text Recognition",
+    "Experiment": "Add online elastic distortion (Simard et al.) and random affine perturbations to the training image pipeline in `IAMTinyDataset.__getitem__` (or a wrapper). Tune the displacement magnitude. Compare CER/WER on the test split against the baseline. Report whether the gain holds when training set is reduced from 200 to 100 lines.",
+    "Interestingness": 6,
+    "Feasibility": 9,
+    "Novelty": 3,
+    "novel": true
+  }
+]

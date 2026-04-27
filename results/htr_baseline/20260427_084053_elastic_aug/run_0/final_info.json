@@ -1,0 +1,12 @@
+{
+  "iam_tiny_test": {
+    "means": {
+      "CER": 0.9908493664946034,
+      "WER": 0.9601190476190476,
+      "test_loss": 3.1744786409231334,
+      "train_time_sec": 336.0644314289093,
+      "epochs_completed": 8.0,
+      "early_stopped": 0.0
+    }
+  }
+}

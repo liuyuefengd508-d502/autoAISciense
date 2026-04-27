@@ -1,0 +1,58 @@
+[
+  {
+    "Name": "elastic_aug",
+    "Title": "Elastic Distortion Augmentation for Tiny-Data Handwritten Text Recognition",
+    "Experiment": "Add online elastic distortion (Simard et al.) and random affine perturbations to the training image pipeline in `IAMTinyDataset.__getitem__` (or a wrapper). Tune the displacement magnitude. Compare CER/WER on the test split against the baseline. Report whether the gain holds when training set is reduced from 200 to 100 lines.",
+    "Interestingness": 6,
+    "Feasibility": 9,
+    "Novelty": 3
+  },
+  {
+    "Name": "bilstm_to_transformer",
+    "Title": "Replacing BiLSTM with a Tiny Transformer Encoder in CRNN+CTC",
+    "Experiment": "Swap the 1-layer BiLSTM in `TinyCRNN` for a 2-layer Transformer encoder (d_model=128, nhead=4, dim_ff=256) with sinusoidal positional encodings on the width axis. Keep parameter count comparable. Compare CER/WER and per-epoch wall-clock against the baseline. Report whether convergence speed differs.",
+    "Interestingness": 7,
+    "Feasibility": 7,
+    "Novelty": 4
+  },
+  {
+    "Name": "attention_decoder_hybrid",
+    "Title": "Hybrid CTC + Cross-Attention Decoder for Low-Resource HTR",
+    "Experiment": "Add a small auto-regressive Transformer decoder operating on the encoder features, trained with a joint CTC + cross-entropy objective (lambda=0.3 on CTC, 0.7 on attention). At inference, decode with attention but use CTC greedy as a fallback when attention diverges. Compare CER/WER against the pure-CTC baseline.",
+    "Interestingness": 8,
+    "Feasibility": 5,
+    "Novelty": 6
+  },
+  {
+    "Name": "lexicon_beam_search",
+    "Title": "Word-Lexicon Constrained Beam Search Decoding for Tiny HTR",
+    "Experiment": "Replace greedy decoding with beam search (width=10) constrained by the union of word tokens that appear in the train split. Compare CER/WER on val and test. Ablate beam widths {1, 5, 10, 25} and report the effect on inference latency. The training procedure remains unchanged.",
+    "Interestingness": 7,
+    "Feasibility": 9,
+    "Novelty": 4
+  },
+  {
+    "Name": "self_distillation",
+    "Title": "Self-Distillation with EMA Teacher for Low-Resource Handwriting Recognition",
+    "Experiment": "Maintain an EMA copy of the model (decay 0.999) as a teacher. Add a KL divergence loss between student and teacher per-frame predictions on weakly-augmented vs strongly-augmented views, weighted at 0.5. Compare CER/WER and training stability against the baseline.",
+    "Interestingness": 7,
+    "Feasibility": 6,
+    "Novelty": 5
+  },
+  {
+    "Name": "curriculum_by_length",
+    "Title": "Length-Based Curriculum Learning for CTC Training on Handwritten Lines",
+    "Experiment": "Sort training examples by transcription length and serve increasingly longer lines over the first 3 epochs (easy-to-hard), then shuffle for the remaining epochs. Compare CER/WER and convergence speed against random shuffling from epoch 1. Report whether the order helps when total epochs is reduced from 5 to 3.",
+    "Interestingness": 5,
+    "Feasibility": 9,
+    "Novelty": 3
+  },
+  {
+    "Name": "char_ngram_lm_rescore",
+    "Title": "Character N-Gram Language Model Rescoring for CTC Outputs",
+    "Experiment": "Estimate a character 5-gram language model on the training transcripts (with Kneser-Ney smoothing via a small in-script implementation). Rescore the top-N CTC beams by linearly combining the acoustic log-prob and the LM log-prob (weight alpha tuned on val). Compare CER/WER on test against unrescored beam search.",
+    "Interestingness": 7,
+    "Feasibility": 7,
+    "Novelty": 4
+  }
+]

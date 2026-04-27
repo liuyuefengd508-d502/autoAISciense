@@ -1,0 +1,47 @@
+{
+    "Summary": "This paper studies handwritten text recognition in an extreme low-resource setting using a compact CRNN-CTC model trained on a 200-line subset of IAM. The main intervention is an online augmentation pipeline combining mild elastic distortion with a small affine transform. The authors compare three configurations: an 8-epoch no-augmentation baseline, a 16-epoch no-augmentation control, and a 16-epoch augmented run, with the goal of separating the effect of augmentation from the effect of longer training. The augmented run improves test CER and test loss relative to both no-augmentation runs, while WER remains very high and does not improve.",
+    "Strengths": [
+        "The paper asks a clear and practically relevant question: whether classical deformation-based augmentation still helps in a very small-data HTR regime.",
+        "The epoch-matched no-augmentation control is a sensible design choice for disentangling augmentation gains from simply training longer.",
+        "The paper is generally clearly written and easy to follow.",
+        "The authors are relatively candid about limitations such as single-seed evaluation, narrow scope, and poor word-level performance."
+    ],
+    "Weaknesses": [
+        "The experimental evidence is too limited for the central empirical claim: the main result is based on only three runs on one tiny split with a single random seed and no variance estimates.",
+        "The contribution is modest in originality. Elastic distortion for handwriting is classical, the model is standard CRNN-CTC, and the main novelty is largely the controlled comparison setup.",
+        "There is no comparison to alternative augmentation strategies (e.g., affine-only, elastic-only, or other standard OCR/HTR augmentations), so it is unclear whether elastic distortion is specifically important.",
+        "There is no systematic sensitivity analysis over augmentation strength, despite the paper emphasizing that stronger settings can collapse training.",
+        "The practical significance is limited: even the best CER (0.8430) is still extremely poor, and WER remains unusably high.",
+        "The study uses only a single dataset subset and does not test robustness across multiple random 200-line subsamples or across different low-resource regimes.",
+        "There is little contextualization against stronger low-resource baselines such as transfer learning, pretraining, or stronger recognizers, so it is hard to judge the practical competitiveness of the approach.",
+        "The mismatch between improved CER and non-improved WER weakens the practical claim and deserves deeper analysis."
+    ],
+    "Originality": 2,
+    "Quality": 2,
+    "Clarity": 3,
+    "Significance": 2,
+    "Questions": [
+        "Can the authors report results over multiple random seeds, including mean and standard deviation for CER, WER, and loss?",
+        "How robust is the conclusion across different random 200-line subsets of IAM? A single split may be highly idiosyncratic.",
+        "What is the contribution of each augmentation component separately? Please provide affine-only and elastic-only ablations in addition to the combined method.",
+        "How sensitive are the results to the elastic parameters alpha and sigma and to the affine magnitudes? Since stronger distortions reportedly cause collapse, a systematic sweep seems essential.",
+        "Why does WER fail to improve while CER improves? Can the authors provide qualitative examples or an error breakdown to explain this mismatch?",
+        "How does the proposed approach compare against other simple low-resource strategies such as stronger regularization, transfer learning, or pretraining?",
+        "Is the result robust under different decoding schemes, such as beam search or a lightweight language model, or is it specific to greedy decoding?",
+        "Can the authors better justify why this empirical finding is sufficiently broad and novel for a major ML venue?"
+    ],
+    "Limitations": [
+        "The paper acknowledges some limitations, but important ones remain: the result is based on a single seed, a single tiny split, and one dataset.",
+        "The method may not generalize beyond IAM or beyond this specific preprocessing pipeline.",
+        "The best-performing model still has poor recognition quality, so the practical utility is limited.",
+        "A brief discussion of privacy and archival-use considerations for handwritten-document recognition would strengthen the paper, even if ethical risks here are limited.",
+        "The paper should more explicitly frame the results as preliminary rather than broadly conclusive for low-resource HTR."
+    ],
+    "Ethical Concerns": false,
+    "Soundness": 2,
+    "Presentation": 3,
+    "Contribution": 1,
+    "Overall": 3,
+    "Confidence": 4,
+    "Decision": "Reject"
+}

@@ -1,0 +1,78 @@
+\begin{thebibliography}{10}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Graves et~al.(2006)Graves, Fern{\'a}ndez, Gomez, and
+  Schmidhuber]{graves2006ctc}
+Alex Graves, Santiago Fern{\'a}ndez, Faustino Gomez, and J{\"u}rgen
+  Schmidhuber.
+\newblock Connectionist temporal classification: labelling unsegmented sequence
+  data with recurrent neural networks.
+\newblock pp.\  369--376, 2006.
+
+\bibitem[Kang et~al.(2022)Kang, Riba, Rusi{\~n}ol, Forn{\'e}s, and
+  Villegas]{kang2022pay}
+Lei Kang, Pau Riba, Mar{\c{c}}al Rusi{\~n}ol, Alicia Forn{\'e}s, and Mauricio
+  Villegas.
+\newblock Pay attention to what you read: Non-recurrent handwritten text-line
+  recognition.
+\newblock In \emph{Pattern Recognition}, 2022.
+
+\bibitem[Loshchilov \& Hutter(2017)Loshchilov and Hutter]{loshchilov2017adamw}
+Ilya Loshchilov and Frank Hutter.
+\newblock Decoupled weight decay regularization.
+\newblock \emph{arXiv preprint arXiv:1711.05101}, 2017.
+
+\bibitem[Lu et~al.(2024)Lu, Lu, Lange, Foerster, Clune, and
+  Ha]{lu2024aiscientist}
+Chris Lu, Cong Lu, Robert~Tjarko Lange, Jakob Foerster, Jeff Clune, and David
+  Ha.
+\newblock The {AI} {S}cientist: Towards fully automated open-ended scientific
+  discovery.
+\newblock \emph{arXiv preprint arXiv:2408.06292}, 2024.
+
+\bibitem[Marti \& Bunke(2002)Marti and Bunke]{marti2002iam}
+Urs-Viktor Marti and Horst Bunke.
+\newblock The iam-database: an english sentence database for offline
+  handwriting recognition.
+\newblock \emph{International Journal on Document Analysis and Recognition},
+  5\penalty0 (1):\penalty0 39--46, 2002.
+
+\bibitem[Michael et~al.(2019)Michael, Labahn, Gr{\"u}ning, and
+  Z{\"o}llner]{michael2019evaluating}
+Johannes Michael, Roger Labahn, Tobias Gr{\"u}ning, and Jochen Z{\"o}llner.
+\newblock Evaluating sequence-to-sequence models for handwritten text
+  recognition.
+\newblock In \emph{ICDAR}, 2019.
+
+\bibitem[Paszke et~al.(2019)Paszke, Gross, Massa, Lerer, Bradbury, Chanan,
+  Killeen, Lin, Gimelshein, Antiga, et~al.]{paszke2019pytorch}
+Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory
+  Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, et~al.
+\newblock Pytorch: An imperative style, high-performance deep learning library.
+\newblock \emph{Advances in neural information processing systems}, 32, 2019.
+
+\bibitem[Shi et~al.(2016)Shi, Bai, and Yao]{shi2016crnn}
+Baoguang Shi, Xiang Bai, and Cong Yao.
+\newblock An end-to-end trainable neural network for image-based sequence
+  recognition and its application to scene text recognition.
+\newblock \emph{IEEE transactions on pattern analysis and machine
+  intelligence}, 39\penalty0 (11):\penalty0 2298--2304, 2016.
+
+\bibitem[Simard et~al.(2003)Simard, Steinkraus, and Platt]{simard2003best}
+Patrice~Y Simard, Dave Steinkraus, and John~C Platt.
+\newblock Best practices for convolutional neural networks applied to visual
+  document analysis.
+\newblock 2003.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez,
+  Kaiser, and Polosukhin]{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock \emph{Advances in neural information processing systems}, 30, 2017.
+
+\end{thebibliography}
