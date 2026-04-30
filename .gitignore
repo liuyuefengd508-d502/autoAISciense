@@ -172,3 +172,14 @@ ICLR2022-OpenReviewData/
 templates/*/run_0/
 templates/*/*.png
 results/*
+
+# AutoArchival paper package artifacts
+**/build-debug/
+**/build-autoarchival/
+**/*.aux
+**/*.fls
+**/*.fdb_latexmk
+**/*.out
+**/*.blg
+**/*render/
+**/*.before_final_cleanup.bak.docx
