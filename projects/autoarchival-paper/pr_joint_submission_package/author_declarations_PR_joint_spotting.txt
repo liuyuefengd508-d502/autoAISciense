@@ -1,0 +1,14 @@
+Funding
+This work was supported by the National Natural Science Foundation of China (Grant No. 62341604), the Science and Technology Project of Inner Mongolia Autonomous Region Archives Bureau (Grant No. 2022-36), the China Scholarship Council (Grant No. 202408150080), and the General Project of the 14th Five-Year Plan for Educational Science of Inner Mongolia Autonomous Region (Grant No. NGJGH2025013).
+
+CRediT authorship contribution statement
+Lanying Liang: Conceptualization, Data Curation, Writing - Original Draft. Yuefeng Liu: Methodology, Software, Validation, Writing - Review & Editing, Supervision. Jianjun Zhao: Writing - Review & Editing, Supervision.
+
+Declaration of competing interest
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+Declaration of generative AI in scientific writing
+Generative AI technologies (Claude/Gemini) were used solely for manuscript formatting and grammatical polishing.
+
+Acknowledgements
+The authors would like to thank the Inner Mongolia Autonomous Region Archives Bureau for their support.

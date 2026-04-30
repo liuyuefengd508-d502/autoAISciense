@@ -1,0 +1,22 @@
+Dear Editors of Pattern Recognition,
+
+We would like to submit the manuscript entitled "AutoArchival: LLM-Guided Architecture Search for Vertical Mongolian-Chinese Historical Text Spotting" by Lanying Liang, Yuefeng Liu, and Jianjun Zhao for consideration as a regular research article in Pattern Recognition.
+
+This work addresses joint text detection and text spotting in Mongolian-Chinese historical archives, a challenging pattern recognition problem characterized by vertically arranged text, severe degradation, mixed-script layouts, and limited annotated data. Existing end-to-end text spotting frameworks are largely tuned for natural scenes and often transfer poorly to archival documents with strong directional structure. To address this gap, we propose AutoArchival, a budget-constrained LLM-guided code-level architecture search framework that discovers task-specific modules for joint localization and transcription under explicit computational limits.
+
+The manuscript fits the scope of Pattern Recognition because it focuses on model design, end-to-end recognition performance, and structured visual pattern analysis for a difficult real-world document domain. The contribution is not simply the use of a language model; rather, it is a constrained architecture search strategy that improves the coupling between detection and recognition for historical text spotting.
+
+In the final submission package, the paper reports:
+- comparisons with representative state-of-the-art end-to-end text spotting methods;
+- evaluation on public text spotting benchmarks and the Mongolian-Chinese Historical Archive Dataset (MCAD);
+- standard detection, recognition, and end-to-end spotting metrics under a unified reporting scheme.
+
+We confirm that this manuscript is original, has not been published previously, and is not under consideration for publication elsewhere. All authors have approved the manuscript and agree with its submission to Pattern Recognition.
+
+Thank you for your consideration.
+
+Sincerely,
+Yuefeng Liu
+School of Artificial Intelligence and Data Science, Inner Mongolia University of Science and Technology
+liuyuefeng@imust.edu.cn
+On behalf of Lanying Liang, Yuefeng Liu, and Jianjun Zhao

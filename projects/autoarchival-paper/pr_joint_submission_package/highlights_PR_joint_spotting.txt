@@ -1,0 +1,5 @@
+- LLM-guided search discovers joint spotting architectures for archival text
+- A fixed budget constrains code-level architecture search and model growth
+- Vertical-aware modules improve localization-transcription coupling
+- Public benchmarks and MCAD evaluate end-to-end spotting performance
+- Ablations analyze search strategy, module gains, and efficiency trade-offs

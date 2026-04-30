@@ -1,0 +1,3 @@
+Public benchmark datasets (ICDAR 2015, Total-Text) used in this study are available from their respective original sources.
+
+The Mongolian-Chinese Historical Archive Dataset (MCAD) introduced in this study, along with its fine-grained annotations, as well as the complete code, model configurations, and experiment scripts for the AutoArchival framework, will be publicly released at https://github.com/liuyuefeng/AutoArchival upon the acceptance of this paper to facilitate future research.
